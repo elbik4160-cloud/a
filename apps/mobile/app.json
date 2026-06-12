@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "CRM Mobile",
+    "name": "CRM",
     "slug": "crm-mobile",
     "version": "1.0.0",
     "scheme": "crm-mobile",
@@ -8,7 +8,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0a0a0a"
     },
     "platforms": ["ios", "android", "web"],
     "orientation": "portrait",
@@ -17,18 +17,28 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "bundleIdentifier": "com.crmmobile.app",
-      "supportsTablet": true
+      "bundleIdentifier": "com.crm.app",
+      "supportsTablet": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
-      "package": "com.crmmobile.app",
+      "package": "com.crm.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0a0a0a"
       }
     },
     "web": {
-      "favicon": "./favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
     }
   }
 }

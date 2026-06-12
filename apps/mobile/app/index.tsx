@@ -1,29 +1,26 @@
-import { Text, View, StyleSheet } from "react-native";
+import { Redirect } from "expo-router";
+import { useAuthStore } from "../hooks/use-auth-store";
 
-export default function HomePage() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>CRM Mobile</Text>
-      <Text style={styles.subtitle}>Welcome to the mobile app scaffold.</Text>
-    </View>
-  );
-}
+export default function Index() {
+  const user = useAuthStore((s) => s.user);
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-    backgroundColor: "#f9fafb"
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    marginBottom: 8
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#4b5563"
+  if (!isHydrated || isLoading) {
+    return null;
   }
-});
+
+  if (!user) {
+    return <Redirect href="/(auth)/sign-in" />;
+  }
+
+  if (user.status === "pending") {
+    return <Redirect href="/pending" />;
+  }
+
+  if (user.status === "rejected") {
+    return <Redirect href="/rejected" />;
+  }
+
+  return <Redirect href="/(tabs)" />;
+}

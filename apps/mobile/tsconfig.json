@@ -1,14 +1,20 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "jsx": "react-jsx",
+    "jsx": "react-native",
     "module": "esnext",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "types": ["react", "react-native"],
     "noEmit": true,
-    "strict": false
+    "strict": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@crm/shared-lib": ["../../packages/shared-lib/src"],
+      "@crm/realtime": ["../../packages/realtime/src"]
+    }
   },
-  "include": ["**/*"]
+  "include": ["**/*", ".expo/types/**/*.ts", "expo-env.d.ts"]
 }
