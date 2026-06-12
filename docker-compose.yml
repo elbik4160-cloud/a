@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  centrifugo:
+    image: centrifugo/centrifugo:v5
+    container_name: crm-centrifugo
+    volumes:
+      - ./centrifugo/config.json:/centrifugo/config.json
+    command: centrifugo -c config.json
+    ports:
+      - "8000:8000"   # WebSocket + HTTP API
+      - "8001:8001"   # Admin UI (development only)
+    environment:
+      - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY=${CENTRIFUGO_SECRET}
+      - CENTRIFUGO_API_KEY=${CENTRIFUGO_API_KEY}
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: crm-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  redis_data:

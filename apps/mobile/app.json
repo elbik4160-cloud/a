@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "CRM Mobile",
+    "slug": "crm-mobile",
+    "version": "1.0.0",
+    "scheme": "crm-mobile",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "platforms": ["ios", "android", "web"],
+    "orientation": "portrait",
+    "updates": {
+      "enabled": false
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "bundleIdentifier": "com.crmmobile.app",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.crmmobile.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "favicon": "./favicon.png"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "@crm/auth",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./client": {
+      "types": "./src/client.ts",
+      "default": "./src/client.ts"
+    },
+    "./session": {
+      "types": "./src/session.ts",
+      "default": "./src/session.ts"
+    }
+  },
+  "dependencies": {
+    "better-auth": "^1.6.15",
+    "@crm/db": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0",
+    "drizzle-orm": "^0.45.2",
+    "next": "15.5.18"
+  }
+
+}

@@ -1,0 +1,135 @@
+/* Command Cards — immersive dark workspace, scoped to .cc-root */
+
+.cc-root {
+  --cc-bg-base: #080d1a;
+  --cc-bg-surface: #0f1629;
+  --cc-bg-elevated: #162038;
+  --cc-border-subtle: rgba(255, 255, 255, 0.07);
+  --cc-border-glow: rgba(59, 130, 246, 0.3);
+  --cc-text-primary: rgba(255, 255, 255, 0.92);
+  --cc-text-secondary: rgba(255, 255, 255, 0.5);
+  --cc-text-muted: rgba(255, 255, 255, 0.28);
+
+  --stage-new: #3b82f6;
+  --stage-contacted: #8b5cf6;
+  --stage-followup: #f59e0b;
+  --stage-meeting: #a855f7;
+  --stage-negotiation: #f97316;
+  --stage-won: #10b981;
+  --stage-lost: #ef4444;
+  --hot: #f97316;
+
+  background: var(--cc-bg-base);
+  color: var(--cc-text-primary);
+  font-family: var(--font-cairo), system-ui, sans-serif;
+  /* Display font: Latin uses Space Grotesk, Arabic falls back to Cairo so glyphs render */
+  --font-display: var(--font-grotesk), var(--font-cairo), system-ui, sans-serif;
+  min-height: calc(100vh - 4rem);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cc-root * {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cc-surface {
+  background: var(--cc-bg-surface);
+  border: 1px solid var(--cc-border-subtle);
+}
+.cc-elevated {
+  background: var(--cc-bg-elevated);
+}
+.cc-text-secondary {
+  color: var(--cc-text-secondary);
+}
+.cc-text-muted {
+  color: var(--cc-text-muted);
+}
+
+/* Card entry stagger */
+@keyframes ccCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.cc-card-enter {
+  animation: ccCardIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Hot glow */
+@keyframes ccHotGlow {
+  0% {
+    box-shadow: 0 0 0 rgba(249, 115, 22, 0);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(249, 115, 22, 0.55);
+  }
+  100% {
+    box-shadow: 0 0 16px rgba(249, 115, 22, 0.3);
+  }
+}
+.cc-hot {
+  animation: ccHotGlow 2s ease-in-out infinite;
+}
+
+/* Stale frost */
+.cc-stale {
+  filter: saturate(0.35);
+}
+.cc-stale::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(107, 114, 128, 0.16);
+  pointer-events: none;
+}
+
+/* Mission progress fill */
+.cc-bar-fill {
+  transition: width 0.7s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+/* Nudge slide */
+@keyframes ccNudgeIn {
+  from {
+    transform: translateY(-80px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+.cc-nudge {
+  animation: ccNudgeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Filter chips no scrollbar */
+.cc-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.cc-no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Deck progress dots */
+.cc-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+}
+.cc-dot-active {
+  width: 18px;
+  background: #3b82f6;
+}

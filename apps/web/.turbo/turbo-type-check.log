@@ -1,0 +1,184 @@
+[6n[m]0;C:\Windows\system32\cmd.exe[?25h$ tsc --noEmit
+[96mapp/api/realtime/token/route.ts[m
+:[93m4[m:[93m23[m - [91merror[90m TS2307: [mCannot fi
+nd module 'jose' or its corresp
+onding type declarations.      
+
+[30m[47m4[m import * as jose from "jose";
+[30m[47m [m [91m                      ~~~~~~[m 
+
+[96mapp/api/realtime/token/route.ts[m
+:[93m23[m:[93m33[m - [91merror[90m TS2339: [mProperty
+ 'workspaceId' does not exist o
+n type '{ id: string; createdAt
+: Date; updatedAt: Date; email:
+ string; emailVerified: boolean
+; name: string; image?: string 
+| null | undefined; role: strin
+g | null | undefined; status: s
+tring | ... 1 more ... | undefi
+ned; requestedRole: string | ..
+. 1 more ... | undefined; }'.  
+
+[30m[47m23[m       workspaceId: session.u
+ser.workspaceId,[91m
+[30m[47m  [m [91m[K[27C[m
+[91m    ~~~~~~~~~~~[m
+
+[96mcomponents/ui/chart.tsx[m:[93m119[m:[93m7[m -
+ [91merror[90m TS2339: [mProperty 'payloa
+d' does not exist on type 'Omit
+<Omit<Props<ValueType, NameType
+>, PropertiesReadFromContext> &
+ { active?: boolean | undefined
+; allowEscapeViewBox?: AllowInD
+imension | undefined; ... 24 mo
+re ...; wrapperStyle?: CSSPrope
+rties | undefined; } & ClassAtt
+ributes<...> & HTMLAttributes<.
+..> & { ...; }, "ref">'.       
+
+[30m[47m119[m       payload,[K
+[30m[47m   [m [91m      ~~~~~~~[m[K
+
+[96mcomponents/ui/chart.tsx[m:[93m124[m:[93m7[m -
+ [91merror[90m TS2339: [mProperty 'label'
+ does not exist on type 'Omit<O
+mit<Props<ValueType, NameType>,
+ PropertiesReadFromContext> & {
+ active?: boolean | undefined; 
+allowEscapeViewBox?: AllowInDim
+ension | undefined; ... 24 more
+ ...; wrapperStyle?: CSSPropert
+ies | undefined; } & ClassAttri
+butes<...> & HTMLAttributes<...
+> & { ...; }, "ref">'.
+
+[30m[47m124[m       label,[K
+[30m[47m   [m [91m      ~~~~~[m[K
+
+[96mcomponents/ui/chart.tsx[m:[93m188[m:[93m25[m 
+- [91merror[90m TS7006: [mParameter 'item
+' implicitly has an 'any' type.
+
+[30m[47m188[m           {payload.map((ite
+m, index) => {[91m
+[30m[47m   [m [91m                        ~~~[m
+[91m~[m
+
+[96mcomponents/ui/chart.tsx[m:[93m188[m:[93m31[m 
+- [91merror[90m TS7006: [mParameter 'inde
+x' implicitly has an 'any' type
+.
+
+[30m[47m188[m           {payload.map((ite
+m, index) => {[91m
+[30m[47m   [m [91m[K[26C[m
+[91m   ~~~~~[m
+
+[96mcomponents/ui/chart.tsx[m:[93m264[m:[93m41[m 
+- [91merror[90m TS2344: [mType '"payload"
+ | "verticalAlign"' does not sa
+tisfy the constraint '"string" 
+| "media" | "spacing" | "order"
+ | "height" | "width" | "rotate
+" | "scale" | "cursor" | "fill"
+ | "stroke" | "strokeWidth" | "
+fontFamily" | "fontSize" | "fon
+tWeight" | "letterSpacing" | ..
+. 434 more ... | "onBBoxUpdate"
+'.
+  Type '"payload"' is not assig
+nable to type '"string" | "medi
+a" | "spacing" | "order" | "hei
+ght" | "width" | "rotate" | "sc
+ale" | "cursor" | "fill" | "str
+oke" | "strokeWidth" | "fontFam
+ily" | "fontSize" | "fontWeight
+" | "letterSpacing" | ... 434 m
+ore ... | "onBBoxUpdate"'.     
+
+[30m[47m264[m     Pick<RechartsPrimitive.
+LegendProps, 'payload' | 'verti
+calAlign'> & {[91m
+[30m[47m   [m [91m[K[26C
+             ~~~~~~~~~~~~~~~~~~[m
+[91m~~~~~~~~~[m
+
+[96mcomponents/ui/chart.tsx[m:[93m275[m:[93m19[m 
+- [91merror[90m TS2339: [mProperty 'lengt
+h' does not exist on type '{}'.
+
+[30m[47m275[m     if (!payload?.length) {
+[30m[47m   [m [91m                  ~~~~~~[m   
+
+[96mcomponents/ui/chart.tsx[m:[93m288[m:[93m18[m 
+- [91merror[90m TS2339: [mProperty 'map' 
+does not exist on type '{}'.   
+
+[30m[47m288[m         {payload.map((item)
+ => {
+[30m[47m   [m [91m                 ~~~[m       
+
+[96mcomponents/ui/chart.tsx[m:[93m288[m:[93m23[m 
+- [91merror[90m TS7006: [mParameter 'item
+' implicitly has an 'any' type.
+
+[30m[47m288[m         {payload.map((item)
+ => {
+[30m[47m   [m [91m                      ~~~~[m 
+[91m
+[96mhooks/use-realtime.ts[m:[93m3[m:[93m28[m - [91mer[m
+[91mror[90m TS2307: [mCannot find module 
+'centrifuge' or its correspondi
+ng type declarations.
+
+[30m[47m3[m import { Centrifuge } from "c
+entrifuge";[91m
+[30m[47m [m [91m                           ~~[m
+[91m~~~~~~~~~~[m
+[91m
+[96mhooks/use-realtime.ts[m:[93m44[m:[93m28[m - [91me[m
+[91mrror[90m TS7006: [mParameter 'ctx' im
+plicitly has an 'any' type.    
+
+[30m[47m44[m     sub.on("publication", (c
+tx) => {[91m
+[30m[47m  [m [91m                           ~[m
+[91m~~[m
+[91m
+[96mhooks/use-realtime.ts[m:[93m52[m:[93m27[m - [91me[m
+[91mrror[90m TS7006: [mParameter 'ctx' im
+plicitly has an 'any' type.    
+
+[30m[47m52[m     sub.on("subscribed", (ct
+x) => {[91m
+[30m[47m  [m [91m                          ~~[m
+[91m~[m
+[96m
+../../packages/realtime/src/typ[m
+[96mes.ts[m:[93m1[m:[93m39[m - [91merror[90m TS2307: [mCann
+ot find module '@crm/shared-lib
+/types' or its corresponding ty
+pe declarations.
+
+[30m[47m1[m import type { LeadDTO, UserDT
+O } from "@crm/shared-lib/types
+";[91m
+[30m[47m [m [91m[K[28C
+         ~~~~~~~~~~~~~~~~~~~~~~[m
+[91m~[m
+
+
+Found 14 errors in 4 files.    
+
+Errors  Files
+     2  app/api/realtime/token/
+route.ts[90m:4[m[K[90m
+[m     8  components/ui/chart.tsx
+[90m:119[m
+     3  hooks/use-realtime.ts[90m:3[m
+     1  ../../packages/realtime
+/src/types.ts[90m:1[m[K
+[31m[41m[[30mELIFECYCLE[31m][m [31mCommand failed wit[m
+[31mh exit code 2.[m
