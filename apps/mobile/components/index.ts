@@ -3,3 +3,4 @@ export { ActivityFeed } from './activity-feed';
 export { Button } from './button';
 export { Card, CardHeader, CardContent } from './card';
 export { Input } from './input';
+export { ErrorBoundary } from './error-boundary';

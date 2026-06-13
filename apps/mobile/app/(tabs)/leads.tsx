@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, TextInput } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { supabase } from "../../lib/supabase";
+import { api } from "../../lib/api";
 import { useAuthStore } from "../../hooks/use-auth-store";
 import { Link } from "expo-router";
 import { Plus, Phone, Search, ChevronRight } from "lucide-react-native";
@@ -17,21 +17,6 @@ interface Lead {
   createdAt: string;
 }
 
-async function getLeads(userId: string, role: string) {
-  const query = supabase
-    .from("leads")
-    .select("id, name, phone, project, status, assignedToName, createdAt")
-    .order("createdAt", { ascending: false });
-
-  if (role !== "admin") {
-    query.eq("assignedToId", userId);
-  }
-
-  const { data, error } = await query;
-  if (error) throw error;
-  return data as Lead[];
-}
-
 export default function LeadsScreen() {
   const user = useAuthStore((s) => s.user)!;
   const [search, setSearch] = useState("");
@@ -40,7 +25,7 @@ export default function LeadsScreen() {
 
   const { data: leads, isLoading, refetch } = useQuery({
     queryKey: ["leads", user.id, user.role],
-    queryFn: () => getLeads(user.id, user.role),
+    queryFn: () => api.leads.list({ search: search || undefined, status: statusFilter || undefined }),
   });
 
   const onRefresh = async () => {
@@ -48,15 +33,6 @@ export default function LeadsScreen() {
     await refetch();
     setRefreshing(false);
   };
-
-  const filteredLeads = leads?.filter((lead) => {
-    const matchesSearch =
-      !search ||
-      lead.name.toLowerCase().includes(search.toLowerCase()) ||
-      lead.phone.includes(search);
-    const matchesStatus = !statusFilter || lead.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -91,6 +67,7 @@ export default function LeadsScreen() {
           placeholderTextColor="#666"
           value={search}
           onChangeText={setSearch}
+          onSubmitEditing={() => refetch()}
         />
       </View>
 
@@ -99,7 +76,10 @@ export default function LeadsScreen() {
           <TouchableOpacity
             key={status}
             style={[styles.filterChip, statusFilter === status && styles.filterChipActive]}
-            onPress={() => setStatusFilter(statusFilter === status ? null : status)}
+            onPress={() => {
+              setStatusFilter(statusFilter === status ? null : status);
+              refetch();
+            }}
           >
             <Text style={[styles.filterChipText, statusFilter === status && styles.filterChipTextActive]}>
               {status}
@@ -109,7 +89,7 @@ export default function LeadsScreen() {
       </View>
 
       <FlatList
-        data={filteredLeads}
+        data={leads}
         keyExtractor={(item) => item.id.toString()}
         style={styles.list}
         contentContainerStyle={styles.listContent}

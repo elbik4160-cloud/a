@@ -1,82 +1,16 @@
-import { createClient } from "@supabase/supabase-js";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+// DEPRECATED: This file is kept for reference only.
+// All authentication and data operations should go through lib/api.ts
+// which communicates with the Hono backend (apps/api/).
+//
+// The backend handles:
+// - Auth via Better Auth with JWT tokens
+// - Database operations via Drizzle ORM
+// - RLS policies enforced server-side
+//
+// Direct Supabase client usage has been removed to ensure:
+// 1. Consistent auth between web and mobile
+// 2. Server-side permission checks
+// 3. Audit logging
+// 4. No client-side RLS bypass
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    storage: AsyncStorage,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
-  },
-});
-
-export type User = {
-  id: string;
-  email: string;
-  name: string;
-  role: "admin" | "sales";
-  status: "pending" | "approved" | "rejected";
-  image?: string;
-};
-
-export async function signIn(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  if (error) throw error;
-  return data;
-}
-
-export async function signUp(email: string, password: string, name: string) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { name },
-    },
-  });
-  if (error) throw error;
-  return data;
-}
-
-export async function signOut() {
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
-}
-
-export async function getCurrentUser(): Promise<User | null> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) return null;
-
-  const { data: profile, error } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", session.user.id)
-    .maybeSingle();
-
-  // If no profile exists yet (trigger might not have run), create a default one
-  if (!profile) {
-    return {
-      id: session.user.id,
-      email: session.user.email!,
-      name: session.user.user_metadata?.name || session.user.email!.split("@")[0],
-      role: "sales",
-      status: "approved",
-    };
-  }
-
-  return {
-    id: session.user.id,
-    email: session.user.email!,
-    name: profile.name,
-    role: profile.role,
-    status: profile.status,
-    image: profile.image,
-  };
-}
+throw new Error("Direct Supabase access is deprecated. Use lib/api.ts instead.");

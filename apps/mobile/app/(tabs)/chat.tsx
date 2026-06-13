@@ -1,9 +1,10 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert } from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from "react-native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect, useRef } from "react";
-import { supabase } from "../../lib/supabase";
+import { api } from "../../lib/api";
 import { useAuthStore } from "../../hooks/use-auth-store";
-import { Send, Trash2 } from "lucide-react-native";
+import { useRealtime } from "../../hooks/use-realtime";
+import { Send, CircleUser as User } from "lucide-react-native";
 
 interface Message {
   id: number;
@@ -16,55 +17,28 @@ interface Message {
   isDeleted: boolean;
 }
 
-async function getMessages() {
-  const { data, error } = await supabase
-    .from("chat_messages")
-    .select("*")
-    .eq("isDeleted", false)
-    .order("createdAt", { ascending: true })
-    .limit(100);
-  if (error) throw error;
-  return data as Message[];
-}
-
-async function sendMessage(userId: string, email: string, name: string, role: string, message: string) {
-  const { error } = await supabase.from("chat_messages").insert({
-    userId,
-    email,
-    name,
-    role,
-    messageText: message,
-  });
-  if (error) throw error;
-}
-
-async function deleteMessage(messageId: number, isAdmin: boolean) {
-  if (!isAdmin) {
-    throw new Error("Only admins can delete messages");
-  }
-  const { error } = await supabase
-    .from("chat_messages")
-    .update({ isDeleted: true })
-    .eq("id", messageId);
-  if (error) throw error;
-}
-
 export default function ChatScreen() {
   const user = useAuthStore((s) => s.user)!;
   const [message, setMessage] = useState("");
-  const [refreshing, setRefreshing] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const queryClient = useQueryClient();
 
   const isAdmin = user.role === "admin";
 
-  const { data: messages, isLoading, refetch } = useQuery({
+  const { data: messages, isLoading, refetch } = useQuery<Message[]>({
     queryKey: ["chatMessages"],
-    queryFn: getMessages,
+    queryFn: () => api.chat.messages(),
+  });
+
+  // Realtime subscription
+  useRealtime("chat:global", (data: any) => {
+    if (data.event === "new_message" || data.event === "message_deleted") {
+      queryClient.invalidateQueries({ queryKey: ["chatMessages"] });
+    }
   });
 
   const sendMutation = useMutation({
-    mutationFn: () => sendMessage(user.id, user.email, user.name, user.role, message),
+    mutationFn: () => api.chat.send(message),
     onSuccess: () => {
       setMessage("");
       queryClient.invalidateQueries({ queryKey: ["chatMessages"] });
@@ -72,12 +46,18 @@ export default function ChatScreen() {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     },
+    onError: (err: any) => {
+      Alert.alert("Error", err.message || "Failed to send message");
+    },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (messageId: number) => deleteMessage(messageId, isAdmin),
+    mutationFn: (messageId: number) => api.chat.delete(messageId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["chatMessages"] });
+    },
+    onError: (err: any) => {
+      Alert.alert("Error", err.message);
     },
   });
 
@@ -89,18 +69,13 @@ export default function ChatScreen() {
     }
   }, [messages?.length]);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-  };
-
   const handleSend = () => {
     if (!message.trim()) return;
     sendMutation.mutate();
   };
 
   const handleDelete = (messageId: number) => {
+    if (!isAdmin) return;
     Alert.alert("Delete Message", "Are you sure you want to delete this message?", [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: () => deleteMutation.mutate(messageId) },
@@ -121,6 +96,8 @@ export default function ChatScreen() {
     });
   };
 
+  const displayMessages = messages?.filter((m) => !m.isDeleted) || [];
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -133,19 +110,21 @@ export default function ChatScreen() {
 
       <FlatList
         ref={flatListRef}
-        data={messages}
+        data={displayMessages}
         keyExtractor={(item) => item.id.toString()}
         style={styles.list}
         contentContainerStyle={styles.listContent}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
+        refreshing={isLoading}
+        onRefresh={refetch}
         renderItem={({ item, index }) => {
           const isMe = item.userId === user.id;
-          const showDate = index === 0 ||
-            formatDate(item.createdAt) !== formatDate(messages![index - 1].createdAt);
+          const showDate =
+            index === 0 || formatDate(item.createdAt) !== formatDate(displayMessages[index - 1].createdAt);
+
+          const MsgIcon = item.role === "admin" ? User : User;
 
           return (
-            <>
+            <View key={item.id}>
               {showDate && (
                 <View style={styles.dateHeader}>
                   <Text style={styles.dateHeaderText}>{formatDate(item.createdAt)}</Text>
@@ -161,13 +140,19 @@ export default function ChatScreen() {
                       <Text style={styles.avatarText}>{item.name[0]}</Text>
                     </View>
                     <Text style={styles.senderName}>{item.name}</Text>
-                    {item.role === "admin" && <View style={styles.adminBadge}><Text style={styles.adminBadgeText}>Admin</Text></View>}
+                    {item.role === "admin" && (
+                      <View style={styles.adminBadge}>
+                        <Text style={styles.adminBadgeText}>Admin</Text>
+                      </View>
+                    )}
                   </View>
                 )}
-                <Text style={[styles.messageText, isMe && styles.myMessageText]}>{item.messageText}</Text>
+                <Text style={[styles.messageText, isMe && styles.myMessageText]}>
+                  {item.messageText}
+                </Text>
                 <Text style={styles.timeText}>{formatTime(item.createdAt)}</Text>
               </TouchableOpacity>
-            </>
+            </View>
           );
         }}
         ListEmptyComponent={
@@ -192,7 +177,11 @@ export default function ChatScreen() {
           onPress={handleSend}
           disabled={!message.trim() || sendMutation.isPending}
         >
-          <Send size={20} color={message.trim() ? "#fff" : "#666"} />
+          {sendMutation.isPending ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Send size={20} color={message.trim() ? "#fff" : "#666"} />
+          )}
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

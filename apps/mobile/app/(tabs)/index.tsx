@@ -1,47 +1,39 @@
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { supabase } from "../../lib/supabase";
+import { api } from "../../lib/api";
 import { useAuthStore } from "../../hooks/use-auth-store";
-import { Users, Lock, MessageSquare, ShieldAlert, Plus, TrendingUp } from "lucide-react-native";
+import { Users, Lock, MessageSquare, ShieldAlert, TrendingUp, Plus } from "lucide-react-native";
 import { Link } from "expo-router";
 import { StatCard } from "../../components/stat-card";
-import { ActivityFeed } from "../../components/activity-feed";
+import { Card, CardContent } from "../../components/card";
 
-async function getDashboardStats(userId: string, role: string) {
-  const [clientsResult, locksResult, feedbackResult, pendingResult, leadsResult] = await Promise.all([
-    role === "admin"
-      ? supabase.from("clients").select("id", { count: "exact", head: true })
-      : supabase.from("clients").select("id", { count: "exact", head: true }).eq("createdBy", userId),
-    supabase.from("client_locks").select("id", { count: "exact", head: true }),
-    supabase.from("feedback").select("id", { count: "exact", head: true }).eq("salesUserId", userId),
-    supabase.from("users").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("leads").select("id", { count: "exact", head: true }).eq("assignedToId", userId),
-  ]);
-
-  const recentFeedback = await supabase
-    .from("feedback")
-    .select("id, salesName, notes, clientStatus, createdAt")
-    .order("createdAt", { ascending: false })
-    .limit(5);
-
-  return {
-    totalClients: clientsResult.count || 0,
-    activeLocks: locksResult.count || 0,
-    myFeedback: feedbackResult.count || 0,
-    pendingUsers: pendingResult.count || 0,
-    myLeads: leadsResult.count || 0,
-    recentFeedback: recentFeedback.data || [],
-  };
+interface DashboardStats {
+  totalClients: number;
+  myClients: number;
+  activeLocks: number;
+  myFeedback: number;
+  pendingUsers: number;
+  myLeads: number;
+  recentFeedback: Array<{
+    id: number;
+    salesName: string;
+    notes: string | null;
+    clientStatus: string;
+    createdAt: string;
+  }>;
 }
 
 export default function DashboardScreen() {
   const user = useAuthStore((s) => s.user)!;
   const [refreshing, setRefreshing] = useState(false);
 
-  const { data: stats, isLoading, refetch } = useQuery({
+  const { data: stats, isLoading, refetch } = useQuery<DashboardStats>({
     queryKey: ["dashboard", user.id, user.role],
-    queryFn: () => getDashboardStats(user.id, user.role),
+    queryFn: async () => {
+      const data = await api.stats.dashboard();
+      return data;
+    },
   });
 
   const onRefresh = async () => {
@@ -72,59 +64,85 @@ export default function DashboardScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#666" />}
       >
         <View style={styles.statsGrid}>
-          <StatCard
-            title={isAdmin ? "All Clients" : "My Clients"}
-            value={isAdmin ? stats?.totalClients ?? 0 : stats?.myLeads ?? 0}
-            icon={Users}
-            color="#3b82f6"
-          />
-          <StatCard
-            title="Active Now"
-            value={stats?.activeLocks ?? 0}
-            icon={Lock}
-            color="#f59e0b"
-          />
-          <StatCard
-            title="My Feedback"
-            value={stats?.myFeedback ?? 0}
-            icon={MessageSquare}
-            color="#22c55e"
-          />
           {isAdmin ? (
-            <StatCard
-              title="Pending Users"
-              value={stats?.pendingUsers ?? 0}
-              icon={ShieldAlert}
-              color="#ef4444"
-            />
+            <StatCard title="All Clients" value={stats?.totalClients ?? 0} icon={Users} color="#3b82f6" />
           ) : (
-            <StatCard
-              title="My Leads"
-              value={stats?.myLeads ?? 0}
-              icon={TrendingUp}
-              color="#8b5cf6"
-            />
+            <StatCard title="My Clients" value={stats?.myClients ?? 0} icon={Users} color="#3b82f6" />
+          )}
+          <StatCard title="Active Now" value={stats?.activeLocks ?? 0} icon={Lock} color="#f59e0b" />
+          <StatCard title="My Feedback" value={stats?.myFeedback ?? 0} icon={MessageSquare} color="#22c55e" />
+          {isAdmin ? (
+            <StatCard title="Pending Users" value={stats?.pendingUsers ?? 0} icon={ShieldAlert} color="#ef4444" />
+          ) : (
+            <StatCard title="My Leads" value={stats?.myLeads ?? 0} icon={TrendingUp} color="#8b5cf6" />
           )}
         </View>
 
-        {isAdmin && stats?.pendingUsers ? (
-          stats.pendingUsers > 0 && (
+        {isAdmin && (stats?.pendingUsers ?? 0) > 0 && (
+          <Link href="/admin/approvals" asChild>
             <TouchableOpacity style={styles.warningCard}>
               <ShieldAlert size={20} color="#f59e0b" />
               <Text style={styles.warningText}>
-                {stats.pendingUsers} pending account request(s)
+                {stats?.pendingUsers} pending account requests
               </Text>
             </TouchableOpacity>
-          )
-        ) : null}
+          </Link>
+        )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-          <ActivityFeed data={stats?.recentFeedback ?? []} isLoading={isLoading} />
+          <Text style={styles.sectionTitle}>Recent Feedback</Text>
+          {(stats?.recentFeedback?.length ?? 0) === 0 ? (
+            <Card>
+              <CardContent>
+                <Text style={styles.emptyText}>No recent feedback</Text>
+              </CardContent>
+            </Card>
+          ) : (
+            stats?.recentFeedback?.map((fb) => (
+              <Card key={fb.id} style={styles.feedbackCard}>
+                <CardContent style={styles.feedbackContent}>
+                  <View style={styles.feedbackInfo}>
+                    <Text style={styles.feedbackName}>{fb.salesName}</Text>
+                    <Text style={styles.feedbackNotes} numberOfLines={1}>
+                      {fb.notes || "No notes"}
+                    </Text>
+                  </View>
+                  <View style={styles.feedbackMeta}>
+                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(fb.clientStatus) + "20" }]}>
+                      <Text style={[styles.statusText, { color: getStatusColor(fb.clientStatus) }]}>
+                        {fb.clientStatus}
+                      </Text>
+                    </View>
+                    <Text style={styles.feedbackDate}>{formatDate(fb.createdAt)}</Text>
+                  </View>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </View>
       </ScrollView>
     </View>
   );
+}
+
+function getStatusColor(status: string) {
+  const colors: Record<string, string> = {
+    Sold: "#22c55e",
+    Interested: "#3b82f6",
+    "Not Interested": "#ef4444",
+    "Follow Up": "#f59e0b",
+    New: "#8b5cf6",
+  };
+  return colors[status] || "#666";
+}
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 const styles = StyleSheet.create({
@@ -195,5 +213,48 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#fff",
     marginBottom: 4,
+  },
+  feedbackCard: {
+    marginBottom: 0,
+  },
+  feedbackContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  feedbackInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  feedbackName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#fff",
+  },
+  feedbackNotes: {
+    fontSize: 12,
+    color: "#666",
+  },
+  feedbackMeta: {
+    alignItems: "flex-end",
+    gap: 6,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  feedbackDate: {
+    fontSize: 11,
+    color: "#555",
+  },
+  emptyText: {
+    color: "#666",
+    textAlign: "center",
+    padding: 20,
   },
 });

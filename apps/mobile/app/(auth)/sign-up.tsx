@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import { Link, router } from "expo-router";
-import { signUp } from "../../lib/supabase";
+import { useAuthStore } from "../../hooks/use-auth-store";
 
 export default function SignUpScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const signUp = useAuthStore((s) => s.signUp);
 
   const handleSignUp = async () => {
     if (!name || !email || !password) {
@@ -20,14 +21,14 @@ export default function SignUpScreen() {
     }
     setLoading(true);
     try {
-      await signUp(email, password, name);
+      await signUp({ name, email, password });
       Alert.alert(
         "Account Created",
         "Your account is pending approval. An admin will review your request.",
         [{ text: "OK", onPress: () => router.replace("/pending") }]
       );
     } catch (err: any) {
-      Alert.alert("Sign Up Failed", err.message);
+      Alert.alert("Sign Up Failed", err.message || "Could not create account");
     } finally {
       setLoading(false);
     }
@@ -59,7 +60,7 @@ export default function SignUpScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="Password"
+          placeholder="Password (min 8 characters)"
           placeholderTextColor="#666"
           value={password}
           onChangeText={setPassword}

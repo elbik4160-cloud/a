@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import { Link, router } from "expo-router";
-import { signIn } from "../../lib/supabase";
 import { useAuthStore } from "../../hooks/use-auth-store";
 
 export default function SignInScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const signIn = useAuthStore((s) => s.signIn);
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -17,10 +17,9 @@ export default function SignInScreen() {
     setLoading(true);
     try {
       await signIn(email, password);
-      await useAuthStore.getState().refresh();
       router.replace("/(tabs)");
     } catch (err: any) {
-      Alert.alert("Sign In Failed", err.message);
+      Alert.alert("Sign In Failed", err.message || "Invalid credentials");
     } finally {
       setLoading(false);
     }

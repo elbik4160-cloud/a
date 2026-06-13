@@ -1,35 +1,13 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from "react-native";
 import { router } from "expo-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "../../../lib/supabase";
+import { api } from "../../../lib/api";
 import { useAuthStore } from "../../../hooks/use-auth-store";
 import { Input } from "../../../components/input";
 import { Button } from "../../../components/button";
 import { Card, CardContent } from "../../../components/card";
 import { ChevronLeft, User, Phone, Building, DollarSign, MapPin, FileText } from "lucide-react-native";
-
-async function createLead(
-  data: {
-    name: string;
-    phone: string;
-    phone2?: string;
-    project?: string;
-    unitType?: string;
-    budget?: string;
-    area?: string;
-    source: string;
-    notes?: string;
-    createdById: string;
-  }
-) {
-  const { error } = await supabase.from("leads").insert({
-    ...data,
-    status: "New",
-    statusChangedAt: new Date().toISOString(),
-  });
-  if (error) throw error;
-}
 
 const sources = [
   "Facebook",
@@ -58,7 +36,7 @@ export default function NewLeadScreen() {
 
   const createMutation = useMutation({
     mutationFn: () =>
-      createLead({
+      api.leads.create({
         name,
         phone,
         phone2: phone2 || undefined,
@@ -69,6 +47,7 @@ export default function NewLeadScreen() {
         source: source || "Other",
         notes: notes || undefined,
         createdById: user.id,
+        createdByName: user.name,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
